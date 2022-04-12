@@ -97,8 +97,5 @@ public interface MemoRepository extends JpaRepository<Memo, Long> {
     - getOne()은 더이상 사용되지 않음
 - update : save(엔티티 객체)
 - delete : deleteById(키 타입), delete(엔티티 객체)
-
-<aside>
-💡 
-
-</aside>
+---
+....ing
