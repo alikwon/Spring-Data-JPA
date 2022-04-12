@@ -1,4 +1,14 @@
 # Spring Data JPA
+## spring boot 프로젝트 생성
+- Java Version : 8
+- Type : gradle
+- packaging : war
+- 의존성 설정
+    - Spring Boot DevTools
+    - Lombok
+    - Spring Web
+    - Sping Data JPA
+---
 ## Entity Class
 
 ```java
