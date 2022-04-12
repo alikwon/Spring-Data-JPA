@@ -92,10 +92,78 @@ public interface MemoRepository extends JpaRepository<Memo, Long> {
     - 스프링이 내부적으로 인터페이스 타입에 맞는 객체를 생성하여 빈으로 등록함.
 ---
 ## CRUD
-- insert : save(엔티티 객체)
-- select : findById(키 타입), getOne(키 타입)
+### 테스트 클래스 생성
+```java
+@SpringBootTest
+public class MemoRepositoryTests {
+
+   @Autowired
+   MemoRepository memoRepository;
+
+   @Test
+   public void testClass(){
+      System.out.println(memoRepository.getClass().getName());
+   }
+```
+1.insert : save(엔티티 객체)
+```java
+...
+   /**
+    * Insert Test - save()
+    */
+   @Test
+   public void testInsertDummies(){
+        for (int i = 1; i < 101; i++) {
+           Memo memo = Memo.builder().memoText("sample - " + i).build();
+           memoRepository.save(memo);
+        }
+   }
+...
+```
+2. select : findById(키 타입), getOne(키 타입)
     - getOne()은 더이상 사용되지 않음
-- update : save(엔티티 객체)
-- delete : deleteById(키 타입), delete(엔티티 객체)
+```java
+    /**
+     * Select Test - findById()
+     */
+    @Test
+    public void testSelect(){
+        Long mno = 99L;
+        Optional<Memo> result = memoRepository.findById(mno);
+
+        System.out.println("=====================================");
+
+        if(result.isPresent()){
+            Memo memo = result.get();
+            System.out.println(memo);
+        }
+    }
+```
+3. update : save(엔티티 객체)
+```java
+...
+   /**
+    * Update Test - save()
+    */
+   @Test
+   public void testUpdate(){
+        Memo memo = Memo.builder().mno(99L).memoText("update Text - " + 99L).build();
+        System.out.println(memoRepository.save(memo));
+   }
+...
+```
+4. delete : deleteById(키 타입), delete(엔티티 객체)
+```java
+...
+   /**
+    * Delete Test - deleteById()
+    */
+   @Test
+   public void testDelete(){
+        Long mno = 100L;
+        memoRepository.deleteById(mno);
+   }
+...
+```
 ---
 ....ing
