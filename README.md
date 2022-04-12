@@ -8,6 +8,7 @@
     - Lombok
     - Spring Web
     - Sping Data JPA
+    - MariaDB
 ---
 ## Entity Class
 
