@@ -177,4 +177,104 @@ public class MemoRepositoryTests {
 ...
 ```
 ---
-....ing
+## 페이징/정렬 처리
+- JPA는 Paging처리를 내부적으로 **Dialect**를 이용하여 처리
+- findAll() 메서드를 사용
+- MariaDB의 경우 자동으로 MariaDB를 위한 Dialect가 설정됨
+```text
+- 프로젝트 로딩시점에서 출력되는 로그
+...
+2022-04-13 20:48:09.228  INFO 14676 --- [  restartedMain] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.MariaDB106Dialect
+2022-04-13 20:48:09.996  INFO 14676 --- [  restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+...
+```
+---
+## Pageable Interface
+- 페이징 처리를 위해 **가장 중요한 인터페이스**
+- 페이지 처리에 **필요한 정보를 전달**하는 용도의 타입  
+---
+## 페이징 처리
+- 테스트 코드
+   ```java
+   import org.springframework.data.domain.Page;
+   import org.springframework.data.domain.PageRequest;
+   import org.springframework.data.domain.Pageable;
+           ...
+   /**
+    * Paging Test - findAll(), Pageable
+    */
+   @Test
+   public void testPageDefault(){
+           // 1페이지 10개
+           Pageable pageable = PageRequest.of(0, 10);
+           Page<Memo> result = memoRepository.findAll(pageable);
+           System.out.println(result);
+           }
+   ```
+   💡 페이지 처리는 반드시 '0'부터 시작!
+   
+   - Page<엔티티 타입>
+     - findAll()의 반환타입
+     - 페이지 처리와 관련된 정보를 담고있다.
+       1. `getTotalPages()` : 총 페이지 수
+       2. `getTotalElements()` : 총 갯수
+       3. `getNumber()` : 현재 페이지의 번호
+       4. `getSize()` : 페이지당 데이터 개수
+       5. `hasNext()` : 다음페이지 존재여부
+       6. `isFirst()` : 시작페이지 여부
+     - 실제 페이지의 데이터를 처리하는것은 getContent() 또는 get() 이용  
+---
+## 정렬조건 추가
+   - org.springframework.data.domain.Sort 타입을 파라미터로 전달
+   - Sort는 한 개 혹은 여러개의 필드값을 이용해서 asc 나 desc를 지정할 수 있음.
+   ```java
+       /**
+        * Sort Test
+        */
+       @Test
+       public void testSort(){
+           Sort sort1 = Sort.by("mno").descending();
+           Sort sort2 = Sort.by("memoText").ascending();
+           Sort sortAll = sort1.and(sort2);
+   
+           Pageable pageable = PageRequest.of(0, 10, sortAll);
+           Page<Memo> result = memoRepository.findAll(pageable);
+           result.get().forEach(memo -> {
+               System.out.println(memo);
+           });
+       }
+   ```
+---
+## @Query
+   - 메소드에 추가한 어노테이션을 통해서 원하는 처리가 가능
+   - 필요한 데이터만 선별적으로 추출하는 기능이 가능
+   - DB에 맞는 순수한 SQL(Native SQL)을 사용하는 기능
+   - select 가 아닌 DML 등을 처리하는 기능(@Modifying과 함께 사용)
+   
+   ex) 'mno'의 역순으로 정렬하라  
+   ```java
+   @Query("select m from Memo m order by m.mno desc")
+   List<Memo> getListDesc();
+   ```
+
+   ### 파라미터 바인딩
+- `?1, ?2` 와 1부터 시작하는 파라미터의 순서를 이용하는 방식
+- `:xxx` 와 같이 `:파라미터 이름`을 활용하는 방식
+- `#{ }`와 같이 자바 빈 스타일을 이용하는 방식  
+
+1. `:파라미터 이름`
+```java
+@Transactional
+@Modifying
+@Query("update Memo m set m.memoText = :memoText where m.mno = :mno")
+int updateMemoText (@Param("mno") Long mno, @Param("memoText") String memoText );
+```
+  
+
+2. `#{ }`
+```java
+@Transactional
+@Modifying
+@Query("update Memo m set m.memoText = :#{#param.memoText} where m.mno =:#{#param.mno} ")
+int updateMemoText (@Param("param") Memo memo );
+```
